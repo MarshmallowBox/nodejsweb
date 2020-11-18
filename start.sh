@@ -11,11 +11,11 @@ echo "#########################################################"
 sudo apt install docker.io&&
 
 
-echo "#########################################################"
-echo "Pulling at git repository"
-echo "#########################################################"
-git clone https://github.com/MarshmallowBox/nodejsweb&&
-cd nodejsweb&&
+#echo "#########################################################"
+#echo "Pulling at git repository"
+#echo "#########################################################"
+#git clone https://github.com/MarshmallowBox/nodejsweb&&
+#cd nodejsweb&&
 
 
 echo "#########################################################"
@@ -29,7 +29,7 @@ echo "Docker Run in background  [nodejsweb]"
 echo "#########################################################"
 sudo docker run -d -p 80:80 --name nodejsweb nodejsweb&&
 sudo apt install net-tools&&
-ifconfig
+ifconfig&&
 
 
 echo "#########################################################"
@@ -48,9 +48,9 @@ sleep 20&&
 
 
 echo "#########################################################"
-echo "Setting suricata.rules  [jasonish/suricata:latest]"
+echo "Setting suricata.rules & restart suricata  [jasonish/suricata:latest]"
 echo "#########################################################"
-sudo docker exec suricata bash -c "echo "alert icmp any any -> any any (msg: "icmp"; sid:10002;)">/var/lib/suricata/rules/suricata.rules"&& echo "alert http any any -> any any (msg: "http"; sid:10003;)>>/var/lib/suricata/rules/suricata.rules"; echo "alert tcp any any -> any any (msg: "tcp"; sid:10004;)>>/var/lib/suricata/rules/suricata.rules";"&&
+sudo docker exec suricata bash -c "echo "alert icmp any any -> any any (msg: \"icmp\"; sid:10002;)">/var/lib/suricata/rules/suricata.rules&& echo "alert http any any -> any any (msg: \"http\"; sid:10003;)">>/var/lib/suricata/rules/suricata.rules; echo "alert tcp any any -> any any (msg: \"tcp\"; sid:10004;)">>/var/lib/suricata/rules/suricata.rules;"&&
 docker restart suricata
 
 
