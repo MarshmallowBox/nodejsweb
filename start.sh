@@ -50,7 +50,7 @@ sleep 20&&
 echo "#########################################################"
 echo "Setting suricata.rules & restart suricata  [jasonish/suricata:latest]"
 echo "#########################################################"
-sudo docker exec suricata bash -c "echo "alert icmp any any -> any any (msg: \"icmp\"; sid:10002;)">/var/lib/suricata/rules/suricata.rules&& echo "alert http any any -> any any (msg: \"http\"; sid:10003;)">>/var/lib/suricata/rules/suricata.rules; echo "alert tcp any any -> any any (msg: \"tcp\"; sid:10004;)">>/var/lib/suricata/rules/suricata.rules;"&&
+sudo docker exec -it -w /var/lib/suricata/rules suricata bash -c "echo 'alert icmp any any -> any any (msg: "icmp"; sid:10002;)'>suricata.rules; echo 'alert http any any -> any any (msg: "http"; sid:10003;)'>>suricata.rules; echo 'alert tcp any any -> any any (msg: "tcp"; sid:10004;)'>>suricata.rules; cat suricata.rules;"
 docker restart suricata
 
 
