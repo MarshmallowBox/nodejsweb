@@ -50,9 +50,13 @@ sleep 20&&
 echo "#########################################################"
 echo "Setting suricata.rules & restart suricata  [jasonish/suricata:latest]"
 echo "#########################################################"
-sudo docker exec -it -w /var/lib/suricata/rules suricata bash -c "echo 'alert icmp any any -> any any (msg: "icmp"; sid:10002;)'>suricata.rules; echo 'alert http any any -> any any (msg: "http"; sid:10003;)'>>suricata.rules; echo 'alert tcp any any -> any any (msg: "tcp"; sid:10004;)'>>suricata.rules; cat suricata.rules;"
-docker restart suricata
+sudo docker exec -it -w /var/lib/suricata/rules suricata bash -c "echo 'alert icmp any any -> any any (msg: "icmp"; sid:10002;)'>suricata.rules; echo 'alert http any any -> any any (msg: "http"; sid:10003;)'>>suricata.rules; echo 'alert tcp any any -> any any (msg: "tcp"; sid:10004;)'>>suricata.rules; cat suricata.rules;"&&
+docker restart suricata&&
 
+
+echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DONE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ fast.log @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+docker exec -it suricata bash -c "tail -f /var/log/suricata/fast.log"
 
 
 
