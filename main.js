@@ -247,9 +247,11 @@ var app = http.createServer(function (request, response) {
             }
             var title = sanitizeHTML(post.title);
             var description = sanitizeHTML(post.description);
+            var form_name = sanitizeHTML(post.form_name);
+            var form_name2 = sanitizeHTML(post.form_name2);
             console.log("title : " + title);
             console.log("description : " + description);
-            connection.query(`INSERT INTO information VALUES("${title}", "${post.form_name}", "${post.form_name2}", "${description.replace(/\r\n/g, "<br>")}")`, function (err, rows, fields) {
+            connection.query(`INSERT INTO information VALUES("${title}", "${form_name}", "${form_name2}", "${description.replace(/\r\n/g, "<br>")}")`, function (err, rows, fields) {
                 // 오류가 발생 할 경우 에러 메세지 표시
                 if (err) {
                     console.log(err.sqlMessage);
@@ -376,10 +378,12 @@ var app = http.createServer(function (request, response) {
             // 현재 적혀있는 title, latitude, longtitude, description을 저장 => 원래 있던 title로 구분 (primary key 여서 가능)
             var title = sanitizeHTML(post.title);
             var description = sanitizeHTML(post.description);
+            var form_name = sanitizeHTML(post.form_name);
+            var form_name2 = sanitizeHTML(post.form_name2);
             console.log("id : " + post.id);
             console.log("title : " + title);
             console.log("description : " + description);
-            connection.query(`UPDATE information SET title = "${title}", latitude = "${post.form_name}", longtitude = "${post.form_name2}", description = "${description.replace(/\r\n/g, "<br>")}" WHERE title = "${post.id}"`, function (err, rows, fields) {
+            connection.query(`UPDATE information SET title = "${title}", latitude = "${form_name}", longtitude = "${form_name2}", description = "${description.replace(/\r\n/g, "<br>")}" WHERE title = "${post.id}"`, function (err, rows, fields) {
                 // error 
                 if (err) {
                     console.log(err.sqlMessage);
