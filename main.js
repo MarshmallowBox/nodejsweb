@@ -6,11 +6,12 @@ var path = require('path');
 var sanitizeHTML = require('sanitize-html');
 var mysql = require("mysql");
 var msg = require('dialog');
+const { Linklist } = require('./lib/template.js');
 var rawdata;
 
 //RDS 접속 정보
 var connection = mysql.createConnection({
-    host: "node-test.cdaki73gryig.ap-northeast-2.rds.amazonaws.com",
+    host: "project-db.cqdeksueggrk.ap-northeast-2.rds.amazonaws.com",
     user: "admin",
     password: "password",
     database: "data"
@@ -45,12 +46,99 @@ var app = http.createServer(function (request, response) {
             });
             var title = "&nbsp; Welcome";
             var description = "&nbsp; Hello, This is Share Place home";
+            var mainlist = template.Mainlist(rawdata);
             var list = template.Listrds(rawdata);
-            var html = template.HTML(title, list, `<h2>${title}</h2>${description}`,
-                `<table id="empList" class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" data-upgraded=",MaterialDataTable">
+            var linklist = template.Linklist(rawdata);
+            var html = template.HTML(title, list, "",
+            `<table id="empList" class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" data-upgraded=",MaterialDataTable">
             <tbody><tr id="yy" class="mdl-data-table__cell--non-numeric">
             <th><a href="/create">create</a></th>
-            </tr></table>`, "");
+            </tr></table>`,"",
+            `
+            <div id="map" style="width:700px;height:350px;"></div>
+            <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=645c80425f05e9d578b464a870031381"></script>
+            <script>
+            var mapContainer = document.getElementById('map'), // 지도를 표시할 div  
+                mapOption = { 
+                    center: new kakao.maps.LatLng(37.518029825657614, 126.95882547659052), // 지도의 중심좌표
+                    level: 8 // 지도의 확대 레벨
+                };
+
+            var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+            
+            // 마커를 표시할 위치와 내용을 가지고 있는 객체 배열입니다 
+            var positions = [
+                ${mainlist}
+            ];
+            // 마커 클릭 시 window.open을 실행할 수 있는 
+            var linklists = [
+                ${linklist}
+            ];
+
+            for (var i = 0; i < positions.length; i ++) {
+                // 마커를 생성합니다
+                var marker = new kakao.maps.Marker({
+                    map: map, // 마커를 표시할 지도
+                    position: positions[i].latlng // 마커의 위치
+                });
+
+                //var cont = positions[i].content.replace("<div>", "").replace("</div>", "");
+                // 마커에 표시할 인포윈도우를 생성합니다 
+                var infowindow = new kakao.maps.InfoWindow({
+                    content: positions[i].content // 인포윈도우에 표시할 내용
+                });
+
+                // 마커에 mouseover, mouseout, click 이벤트를 등록합니다
+                // 이벤트 리스너로는 클로저를 만들어 등록합니다 
+                // for문에서 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
+                kakao.maps.event.addListener(marker, 'mouseover', makeOverListener(map, marker, infowindow));
+                kakao.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow));
+                kakao.maps.event.addListener(marker, 'click', makeClickListener(linklists[i].content));
+                
+            }
+
+            //4시간이 걸린 클릭 이벤트.....
+            function makeClickListener(placeName) {
+                return function() {
+                    window.open("?id="+placeName);
+                };
+            }
+
+            // 혹시 모를 지도의 click 이벤트
+            // kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+            //     var latlng = mouseEvent.latLng;
+            //     alert('click! ' + latlng.toString());
+            // });
+
+            // 인포윈도우를 표시하는 클로저를 만드는 함수입니다 
+            function makeOverListener(map, marker, infowindow) {
+                return function() {
+                    infowindow.open(map, marker);
+                };
+            }
+            
+            // 인포윈도우를 닫는 클로저를 만드는 함수입니다 
+            function makeOutListener(infowindow) {
+                return function() {
+                    infowindow.close();
+                };
+            }
+
+            // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+            var mapTypeControl = new kakao.maps.MapTypeControl();
+
+            // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+            // kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+            map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+            // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+            var zoomControl = new kakao.maps.ZoomControl();
+            map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            </script>
+            `
+                
+            
+            );
             response.writeHead(200);
             response.end(html);
             // 쿼리 데이터가 있을 때 (각 항목을 누른 상황)
@@ -97,7 +185,7 @@ var app = http.createServer(function (request, response) {
                 </tr></table>
                     `, `
                     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=645c80425f05e9d578b464a870031381"></script>
-                    <div id="map" style="width:100%;height:350px;"></div>
+                    <div id="map" style="width:100%;height:450px;"></div>
                     <div id="clickLatlng"></div>
                     <script>
                     var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
@@ -134,6 +222,16 @@ var app = http.createServer(function (request, response) {
                             image : markerImage // 마커 이미지 
                         });
                     }
+                    // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+                    var mapTypeControl = new kakao.maps.MapTypeControl();
+
+                    // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+                    // kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+                    map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+                    // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+                    var zoomControl = new kakao.maps.ZoomControl();
+                    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
                     
                     </script>
                     `);
@@ -166,7 +264,7 @@ var app = http.createServer(function (request, response) {
                   <label class="fontawesome-user" for="name"> 경도</label>
                   <label class="st" id="clickLatlng2"></label>
                   <div id="clickLatlng2"></div>
-               </div><br><br><br>
+               </div><br>
                <div class="form__filed">
                <label class="fontawesome-user" for="name"> 내용</label></br>
                   <textarea name="description" placeholder="설명" required></textarea>
@@ -225,6 +323,16 @@ var app = http.createServer(function (request, response) {
                 document.createtag.form_name2.value=message2;
                 
             });
+            // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+                    var mapTypeControl = new kakao.maps.MapTypeControl();
+
+                    // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+                    // kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+                    map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+                    // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+                    var zoomControl = new kakao.maps.ZoomControl();
+                    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
             </script>
             `);
         response.writeHead(200);
@@ -359,6 +467,16 @@ var app = http.createServer(function (request, response) {
                 document.createtag.form_name2.value=message2;
                 
             });
+            // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+                    var mapTypeControl = new kakao.maps.MapTypeControl();
+
+                    // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+                    // kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+                    map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+                    // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+                    var zoomControl = new kakao.maps.ZoomControl();
+                    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
             </script>
             `);
             response.writeHead(200);
